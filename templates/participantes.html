@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block titulo %}Participantes - {{ torneio.nome }}{% endblock %}
+
+{% block conteudo %}
+<section class="painel-principal painel-duplo">
+  <div>
+    <p class="rotulo">Cadastro</p>
+    <h1>{{ torneio.nome }}</h1>
+    <p class="subtitulo">Cadastre de 2 a 50 participantes. As imagens ficam salvas localmente na pasta do sistema.</p>
+  </div>
+  <form action="{{ url_for('iniciar', torneio_id=torneio.id) }}" method="post">
+    <button class="botao botao-primario" type="submit" {% if participantes|length < 2 %}disabled{% endif %}>
+      Sortear chaves
+    </button>
+  </form>
+</section>
+
+<section class="layout-cadastro">
+  <form class="cartao formulario-participante" action="{{ url_for('adicionar', torneio_id=torneio.id) }}" method="post" enctype="multipart/form-data">
+    <h2>Novo participante</h2>
+    <label>
+      Nome
+      <input type="text" name="nome" placeholder="Nome do jogador ou equipe" required>
+    </label>
+    <label>
+      Apelido
+      <input type="text" name="apelido" placeholder="Ex.: Mestre do Fogo">
+    </label>
+    <label>
+      Imagem
+      <input type="file" name="imagem" accept="image/png,image/jpeg,image/webp,image/gif">
+    </label>
+    <button class="botao botao-primario" type="submit">Adicionar</button>
+  </form>
+
+  <div class="cartao">
+    <div class="secao-titulo">
+      <h2>Participantes</h2>
+      <span>{{ participantes|length }}/50</span>
+    </div>
+    {% if participantes %}
+      <div class="lista-participantes">
+        {% for participante in participantes %}
+          <article class="participante-linha">
+            <div class="avatar">
+              {% if participante.imagem %}
+                <img src="{{ url_for('static', filename=participante.imagem) }}" alt="{{ participante.nome }}">
+              {% else %}
+                <span>{{ participante.nome[:2]|upper }}</span>
+              {% endif %}
+            </div>
+            <div>
+              <strong>{{ participante.nome }}</strong>
+              <small>{{ participante.apelido or "Sem apelido" }}</small>
+            </div>
+            <form action="{{ url_for('remover', participante_id=participante.id) }}" method="post">
+              <input type="hidden" name="torneio_id" value="{{ torneio.id }}">
+              <button class="botao-icone" type="submit" title="Remover participante">x</button>
+            </form>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="estado-vazio compacto">
+        <h3>Lista vazia</h3>
+        <p>Adicione os participantes antes de sortear as chaves.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

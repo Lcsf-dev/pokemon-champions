@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}Torneio Pokémon{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    {% if caminho_favicon %}
+      <link rel="icon" href="{{ url_for('favicon', v=versao_assets) }}" type="image/x-icon">
+      <link rel="shortcut icon" href="{{ url_for('favicon', v=versao_assets) }}" type="image/x-icon">
+    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+  </head>
+  <body>
+    <div class="fundo"></div>
+    <header class="topo">
+      <a class="marca" href="{{ url_for('inicio') }}">
+        <span class="marca-simbolo">
+          {% if caminho_logo %}
+            <img src="{{ url_for('static', filename=caminho_logo) }}" alt="Logo Pokémon Champions">
+          {% else %}
+            PC
+          {% endif %}
+        </span>
+        <span>
+          <strong>Pokémon Champions</strong>
+          <small>Double Elimination</small>
+        </span>
+      </a>
+      <nav>
+        <a href="{{ url_for('inicio') }}">Torneios</a>
+      </nav>
+    </header>
+
+    <main class="conteudo">
+      {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% if mensagens %}
+          <div class="mensagens">
+            {% for categoria, mensagem in mensagens %}
+              <div class="alerta alerta-{{ categoria }}">{{ mensagem }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block conteudo %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>
+
+
+
+

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block titulo %}Torneios - Pokémon Champions{% endblock %}
+
+{% block conteudo %}
+<section class="painel-principal">
+  <div class="cabecalho-pagina">
+    <div>
+      <p class="rotulo">Sistema local</p>
+      <h1>Gerenciador de torneios Pokémon</h1>
+      <p class="subtitulo">Crie torneios de dupla eliminacao, cadastre jogadores, sorteie confrontos e salve tudo em SQLite.</p>
+    </div>
+  </div>
+
+  <form class="formulario-criar" action="{{ url_for('criar') }}" method="post">
+    <label>
+      Nome do torneio
+      <input type="text" name="nome" placeholder="Ex.: Champions de Sabado" required>
+    </label>
+    <button class="botao botao-primario" type="submit">Criar torneio</button>
+  </form>
+</section>
+
+<section class="secao">
+  <div class="secao-titulo">
+    <h2>Torneios salvos</h2>
+    <span>{{ torneios|length }} registro(s)</span>
+  </div>
+
+  {% if torneios %}
+    <div class="grade-torneios">
+      {% for torneio in torneios %}
+        <article class="cartao-torneio">
+          <div>
+            <span class="status status-{{ torneio.status }}">{{ torneio.status }}</span>
+            <h3>{{ torneio.nome }}</h3>
+            <p>{{ torneio.total_participantes }} participante(s)</p>
+          </div>
+          <div class="acoes-cartao">
+            {% if torneio.status == 'cadastro' %}
+              <a class="botao botao-secundario" href="{{ url_for('participantes', torneio_id=torneio.id) }}">Cadastrar</a>
+            {% else %}
+              <a class="botao botao-secundario" href="{{ url_for('torneio', torneio_id=torneio.id) }}">Abrir</a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="estado-vazio">
+      <h3>Nenhum torneio criado ainda</h3>
+      <p>Crie o primeiro torneio para cadastrar participantes e sortear as chaves.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
+

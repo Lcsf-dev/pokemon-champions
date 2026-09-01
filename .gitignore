@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Banco local
+torneio.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs locais
+*.log
+pokemon_champions_inicializacao.log
+
+# Uploads locais de participantes
+static/uploads/participantes/*
+!static/uploads/participantes/.gitkeep
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Atalhos locais do Windows
+*.lnk

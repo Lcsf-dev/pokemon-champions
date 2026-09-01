@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% macro card_participante(nome, apelido, imagem) %}
+  <div class="mini-participante">
+    <div class="avatar pequeno">
+      {% if imagem %}
+        <img src="{{ url_for('static', filename=imagem) }}" alt="{{ nome }}">
+      {% else %}
+        <span>{{ nome[:2]|upper }}</span>
+      {% endif %}
+    </div>
+    <div>
+      <strong>{{ nome }}</strong>
+      <small>{{ apelido or "Treinador" }}</small>
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro bloco_partidas(titulo, chave, partidas, torneio) %}
+  <section class="coluna-chave">
+    <div class="secao-titulo">
+      <h2>{{ titulo }}</h2>
+      <span>{{ partidas|selectattr("chave", "equalto", chave)|list|length }} partida(s)</span>
+    </div>
+    <div class="lista-partidas">
+      {% set partidas_chave = partidas|selectattr("chave", "equalto", chave)|list %}
+      {% if partidas_chave %}
+        {% for partida in partidas_chave %}
+          <article class="partida {{ 'finalizada' if partida.status == 'finalizada' else '' }}">
+            <div class="partida-topo">
+              <span>Rodada {{ partida.rodada }} - Jogo {{ partida.ordem }}</span>
+              <strong>{{ partida.status }}</strong>
+            </div>
+
+            <div class="versus">
+              {{ card_participante(partida.participante_a_nome, partida.participante_a_apelido, partida.participante_a_imagem) }}
+              <span class="versus-texto">VS</span>
+              {{ card_participante(partida.participante_b_nome, partida.participante_b_apelido, partida.participante_b_imagem) }}
+            </div>
+
+            {% if partida.status == 'pendente' and torneio.status != 'finalizado' %}
+              <form class="acoes-resultado" action="{{ url_for('resultado', partida_id=partida.id) }}" method="post">
+                <input type="hidden" name="torneio_id" value="{{ torneio.id }}">
+                <button class="botao botao-secundario" name="vencedor_id" value="{{ partida.participante_a_id }}" type="submit">
+                  {{ partida.participante_a_nome }} venceu
+                </button>
+                <button class="botao botao-secundario" name="vencedor_id" value="{{ partida.participante_b_id }}" type="submit">
+                  {{ partida.participante_b_nome }} venceu
+                </button>
+              </form>
+            {% else %}
+              <div class="resultado">
+                Vencedor: <strong>{{ partida.vencedor_nome or "Aguardando" }}</strong>
+              </div>
+            {% endif %}
+          </article>
+        {% endfor %}
+      {% else %}
+        <div class="estado-vazio compacto">
+          <h3>Aguardando</h3>
+          <p>Essa chave sera criada automaticamente conforme os resultados.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endmacro %}
+
+{% block titulo %}Torneio - {{ torneio.nome }}{% endblock %}
+
+{% block conteudo %}
+<section class="painel-principal painel-duplo">
+  <div>
+    <p class="rotulo">Torneio em {{ torneio.status }}</p>
+    <h1>{{ torneio.nome }}</h1>
+    <p class="subtitulo">Cada derrota e salva automaticamente. Com duas derrotas, o participante e eliminado.</p>
+  </div>
+  <a class="botao botao-secundario" href="{{ url_for('participantes', torneio_id=torneio.id) }}">Ver cadastro</a>
+</section>
+
+{% if torneio.status == 'finalizado' %}
+  <section class="podio">
+    <article class="lugar segundo">
+      <span>2º</span>
+      <h2>{{ podio.segundo.nome if podio.segundo else "Indefinido" }}</h2>
+      <p>Vice-campeao</p>
+    </article>
+    <article class="lugar primeiro">
+      <span>1º</span>
+      <h2>{{ podio.primeiro.nome if podio.primeiro else "Indefinido" }}</h2>
+      <p>Campeao</p>
+    </article>
+    <article class="lugar terceiro">
+      <span>3º</span>
+      <h2>{{ podio.terceiro.nome if podio.terceiro else "Indefinido" }}</h2>
+      <p>Perdedor da final da repescagem</p>
+    </article>
+  </section>
+{% endif %}
+
+<section class="painel-status">
+  <div>
+    <strong>{{ participantes|selectattr("status", "equalto", "ativo")|list|length }}</strong>
+    <span>ativos</span>
+  </div>
+  <div>
+    <strong>{{ participantes|selectattr("derrotas", "equalto", 0)|list|length }}</strong>
+    <span>na chave principal</span>
+  </div>
+  <div>
+    <strong>{{ participantes|selectattr("derrotas", "equalto", 1)|selectattr("status", "equalto", "ativo")|list|length }}</strong>
+    <span>na repescagem</span>
+  </div>
+  <div>
+    <strong>{{ participantes|selectattr("status", "equalto", "eliminado")|list|length }}</strong>
+    <span>eliminados</span>
+  </div>
+</section>
+
+<section class="grade-chaves">
+  {{ bloco_partidas("Chave Principal", "upper", partidas, torneio) }}
+  {{ bloco_partidas("Repescagem", "lower", partidas, torneio) }}
+  {{ bloco_partidas("Grande Final", "final", partidas, torneio) }}
+</section>
+
+<section class="secao">
+  <div class="secao-titulo">
+    <h2>Participantes e status</h2>
+    <span>salvo no SQLite</span>
+  </div>
+  <div class="grade-status">
+    {% for participante in participantes %}
+      <article class="status-participante {{ participante.status }}">
+        <div class="avatar">
+          {% if participante.imagem %}
+            <img src="{{ url_for('static', filename=participante.imagem) }}" alt="{{ participante.nome }}">
+          {% else %}
+            <span>{{ participante.nome[:2]|upper }}</span>
+          {% endif %}
+        </div>
+        <div>
+          <strong>{{ participante.nome }}</strong>
+          <small>{{ participante.derrotas }} derrota(s) - {{ participante.status }}</small>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
