@@ -66,7 +66,7 @@ def localizar_favicon():
 
 @app.context_processor
 def variaveis_globais():
-    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-pokebola"}
+    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-corrige-envio-resultado"}
 def abrir_navegador():
     webbrowser.open_new(f"http://127.0.0.1:{PORTA_LOCAL}")
 
@@ -176,6 +176,10 @@ def torneio(torneio_id):
 def resultado(partida_id):
     torneio_id = int(request.form.get("torneio_id"))
     vencedor_id = request.form.get("vencedor_id")
+    if not vencedor_id:
+        flash("Selecione um vencedor para registrar o resultado.", "erro")
+        return redirect(url_for("torneio", torneio_id=torneio_id))
+
     try:
         with obter_conexao() as conexao:
             registrar_resultado(conexao, partida_id, vencedor_id)
@@ -191,6 +195,7 @@ if __name__ == "__main__":
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
     Timer(1.0, abrir_navegador).start()
     app.run(host="127.0.0.1", port=PORTA_LOCAL, debug=False, use_reloader=False)
+
 
 
 

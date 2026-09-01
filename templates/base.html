@@ -11,7 +11,7 @@
       <link rel="icon" href="{{ url_for('favicon', v=versao_assets) }}" type="image/x-icon">
       <link rel="shortcut icon" href="{{ url_for('favicon', v=versao_assets) }}" type="image/x-icon">
     {% endif %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css', v=versao_assets) }}">
   </head>
   <body>
     <div class="fundo"></div>
@@ -48,9 +48,10 @@
       {% block conteudo %}{% endblock %}
     </main>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js', v=versao_assets) }}"></script>
   </body>
 </html>
+
 
 
 
