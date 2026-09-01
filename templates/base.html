@@ -34,7 +34,7 @@
       </nav>
     </header>
 
-    <main class="conteudo">
+    <main class="conteudo {% block classe_conteudo %}{% endblock %}">
       {% with mensagens = get_flashed_messages(with_categories=true) %}
         {% if mensagens %}
           <div class="mensagens">
@@ -51,8 +51,3 @@
     <script src="{{ url_for('static', filename='js/app.js', v=versao_assets) }}"></script>
   </body>
 </html>
-
-
-
-
-

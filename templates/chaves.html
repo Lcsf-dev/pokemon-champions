@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% macro nome_participante(nome, apelido, imagem, vencedor) %}
+  <div class="bracket-participante {{ 'vencedor' if vencedor else '' }}">
+    <div class="avatar pequeno">
+      {% if imagem %}
+        <img src="{{ url_for('static', filename=imagem) }}" alt="{{ nome }}">
+      {% else %}
+        <span>{{ nome[:2]|upper }}</span>
+      {% endif %}
+    </div>
+    <div>
+      <strong>{{ nome }}</strong>
+      <small>{{ apelido or "Treinador" }}</small>
+    </div>
+  </div>
+{% endmacro %}
+
+{% macro partida_bracket(partida, indice, ultima_rodada) %}
+  <article class="bracket-partida {{ 'finalizada' if partida.status == 'finalizada' else 'pendente' }} {{ 'sem-conector' if ultima_rodada else '' }} {{ 'origem-cima' if indice % 2 == 0 else 'origem-baixo' }}">
+    <div class="bracket-meta">
+      <span>Jogo {{ partida.ordem }}</span>
+      <strong>{{ partida.status }}</strong>
+    </div>
+
+    {{ nome_participante(
+      partida.participante_a_nome,
+      partida.participante_a_apelido,
+      partida.participante_a_imagem,
+      partida.vencedor_id == partida.participante_a_id
+    ) }}
+
+    {{ nome_participante(
+      partida.participante_b_nome,
+      partida.participante_b_apelido,
+      partida.participante_b_imagem,
+      partida.vencedor_id == partida.participante_b_id
+    ) }}
+  </article>
+{% endmacro %}
+
+{% macro secao_bracket(titulo, subtitulo, rodadas) %}
+  <section class="bracket-secao">
+    <div class="secao-titulo">
+      <div>
+        <h2>{{ titulo }}</h2>
+        <p>{{ subtitulo }}</p>
+      </div>
+      <span>{{ rodadas|length }} rodada(s)</span>
+    </div>
+
+    {% if rodadas %}
+      <div class="bracket-scroll">
+        <div class="bracket-mapa" style="--total-rodadas: {{ rodadas|length }};">
+          {% for rodada in rodadas %}
+            <div class="bracket-rodada rodada-nivel-{{ loop.index }}">
+              <h3>Rodada {{ rodada.numero }}</h3>
+              {% set ultima_rodada = loop.last %}
+              <div class="bracket-coluna">
+                {% for partida in rodada.partidas %}
+                  {{ partida_bracket(partida, loop.index0, ultima_rodada) }}
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <div class="estado-vazio compacto">
+        <h3>Aguardando partidas</h3>
+        <p>Esta chave sera exibida quando as partidas forem geradas pelo sistema.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endmacro %}
+
+{% block titulo %}Chaves - {{ torneio.nome }}{% endblock %}
+{% block classe_conteudo %}conteudo-amplo{% endblock %}
+
+{% block conteudo %}
+<section class="painel-principal">
+  <p class="rotulo">Visualização das chaves</p>
+  <h1>{{ torneio.nome }}</h1>
+  <p class="subtitulo">Acompanhamento visual do bracket do torneio, separado por chave principal, repescagem e grande final.</p>
+</section>
+
+<nav class="abas-torneio" aria-label="Navegação do torneio">
+  <a class="aba-torneio" href="{{ url_for('torneio', torneio_id=torneio.id) }}">Gerenciar partidas</a>
+  <a class="aba-torneio ativa" href="{{ url_for('chaves', torneio_id=torneio.id) }}">Visualizar chaves</a>
+</nav>
+
+{{ secao_bracket("Chave Principal", "Participantes ainda sem derrota disputam a permanencia na parte superior do torneio.", chaves.upper) }}
+{{ secao_bracket("Chave de Repescagem", "Participantes com uma derrota continuam vivos na disputa pelo retorno a grande final.", chaves.lower) }}
+{{ secao_bracket("Grande Final", "Decisao entre o campeao da chave principal e o campeao da repescagem.", chaves.final) }}
+{% endblock %}

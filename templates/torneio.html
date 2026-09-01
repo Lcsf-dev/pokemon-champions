@@ -76,6 +76,10 @@
   </div>
   <a class="botao botao-secundario" href="{{ url_for('participantes', torneio_id=torneio.id) }}">Ver cadastro</a>
 </section>
+<nav class="abas-torneio" aria-label="Navegação do torneio">
+  <a class="aba-torneio ativa" href="{{ url_for('torneio', torneio_id=torneio.id) }}">Gerenciar partidas</a>
+  <a class="aba-torneio" href="{{ url_for('chaves', torneio_id=torneio.id) }}">Visualizar chaves</a>
+</nav>
 
 {% if torneio.status == 'finalizado' %}
   <section class="podio">

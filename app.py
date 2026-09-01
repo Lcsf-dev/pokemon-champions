@@ -66,7 +66,7 @@ def localizar_favicon():
 
 @app.context_processor
 def variaveis_globais():
-    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-corrige-envio-resultado"}
+    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-chaves-sem-scroll-horizontal"}
 def abrir_navegador():
     webbrowser.open_new(f"http://127.0.0.1:{PORTA_LOCAL}")
 
@@ -79,6 +79,32 @@ def favicon():
     resposta.headers["Pragma"] = "no-cache"
     resposta.headers["Expires"] = "0"
     return resposta
+
+
+def montar_chaves_visuais(partidas):
+    chaves = {
+        "upper": {},
+        "lower": {},
+        "final": {},
+    }
+
+    for partida in partidas:
+        chave = partida["chave"]
+        rodada = partida["rodada"]
+        if chave not in chaves:
+            chaves[chave] = {}
+        if rodada not in chaves[chave]:
+            chaves[chave][rodada] = []
+        chaves[chave][rodada].append(partida)
+
+    return {
+        chave: [
+            {"numero": rodada, "partidas": partidas_rodada}
+            for rodada, partidas_rodada in sorted(rodadas.items())
+        ]
+        for chave, rodadas in chaves.items()
+    }
+
 @app.route("/")
 def inicio():
     with obter_conexao() as conexao:
@@ -172,6 +198,19 @@ def torneio(torneio_id):
     )
 
 
+
+@app.route("/torneios/<int:torneio_id>/chaves")
+def chaves(torneio_id):
+    with obter_conexao() as conexao:
+        torneio_atual = obter_torneio(conexao, torneio_id)
+        partidas = listar_partidas(conexao, torneio_id)
+
+    return render_template(
+        "chaves.html",
+        torneio=torneio_atual,
+        chaves=montar_chaves_visuais(partidas),
+    )
+
 @app.post("/partidas/<int:partida_id>/resultado")
 def resultado(partida_id):
     torneio_id = int(request.form.get("torneio_id"))
@@ -195,8 +234,3 @@ if __name__ == "__main__":
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
     Timer(1.0, abrir_navegador).start()
     app.run(host="127.0.0.1", port=PORTA_LOCAL, debug=False, use_reloader=False)
-
-
-
-
-
