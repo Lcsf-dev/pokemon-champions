@@ -81,6 +81,19 @@ def remover_participante(conexao, participante_id):
     conexao.execute("DELETE FROM participantes WHERE id = ?", (participante_id,))
 
 
+def listar_imagens_participantes_torneio(conexao, torneio_id):
+    linhas = conexao.execute(
+        "SELECT imagem FROM participantes WHERE torneio_id = ? AND imagem IS NOT NULL",
+        (torneio_id,),
+    ).fetchall()
+    return [linha["imagem"] for linha in linhas if linha["imagem"]]
+
+
+def deletar_torneio(conexao, torneio_id):
+    cursor = conexao.execute("DELETE FROM torneios WHERE id = ?", (torneio_id,))
+    return cursor.rowcount > 0
+
+
 def iniciar_torneio(conexao, torneio_id):
     participantes = conexao.execute(
         "SELECT id FROM participantes WHERE torneio_id = ? ORDER BY RANDOM()",

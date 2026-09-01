@@ -9,9 +9,11 @@ from werkzeug.utils import secure_filename
 from banco import RAIZ_PROJETO, iniciar_banco, obter_conexao
 from torneio_servico import (
     adicionar_participante,
+    deletar_torneio,
     buscar_nome_participante,
     criar_torneio,
     iniciar_torneio,
+    listar_imagens_participantes_torneio,
     listar_participantes,
     listar_partidas,
     listar_torneios,
@@ -66,7 +68,7 @@ def localizar_favicon():
 
 @app.context_processor
 def variaveis_globais():
-    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-chaves-sem-scroll-horizontal"}
+    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-excluir-torneio"}
 def abrir_navegador():
     webbrowser.open_new(f"http://127.0.0.1:{PORTA_LOCAL}")
 
@@ -80,6 +82,16 @@ def favicon():
     resposta.headers["Expires"] = "0"
     return resposta
 
+
+def apagar_imagens_participantes(imagens):
+    pasta_static = (RAIZ_PROJETO / "static").resolve()
+
+    for imagem in imagens:
+        caminho_imagem = (pasta_static / imagem).resolve()
+        if pasta_static not in caminho_imagem.parents:
+            continue
+        if caminho_imagem.exists() and caminho_imagem.is_file():
+            caminho_imagem.unlink()
 
 def montar_chaves_visuais(partidas):
     chaves = {
@@ -125,6 +137,22 @@ def criar():
     flash("Torneio criado com sucesso.", "sucesso")
     return redirect(url_for("participantes", torneio_id=torneio_id))
 
+
+@app.post("/torneios/<int:torneio_id>/deletar")
+def deletar(torneio_id):
+    with obter_conexao() as conexao:
+        torneio_atual = obter_torneio(conexao, torneio_id)
+        if not torneio_atual:
+            flash("Torneio não encontrado.", "erro")
+            return redirect(url_for("inicio"))
+
+        imagens = listar_imagens_participantes_torneio(conexao, torneio_id)
+        deletar_torneio(conexao, torneio_id)
+        conexao.commit()
+
+    apagar_imagens_participantes(imagens)
+    flash(f"Torneio '{torneio_atual['nome']}' excluído com sucesso.", "sucesso")
+    return redirect(url_for("inicio"))
 
 @app.route("/torneios/<int:torneio_id>/participantes")
 def participantes(torneio_id):

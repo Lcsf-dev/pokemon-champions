@@ -258,6 +258,17 @@ input:focus {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.botao-perigo {
+  color: #fecdd3;
+  border-color: rgba(251, 113, 133, 0.44);
+  background: rgba(251, 113, 133, 0.12);
+}
+
+.botao-perigo:hover {
+  border-color: rgba(251, 113, 133, 0.72);
+  background: rgba(251, 113, 133, 0.18);
+}
+
 .botao-icone {
   display: grid;
   width: 36px;
@@ -299,6 +310,16 @@ input:focus {
   flex-direction: column;
   justify-content: space-between;
   padding: 18px;
+}
+
+.acoes-cartao {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.formulario-excluir {
+  margin: 0;
 }
 
 .status {

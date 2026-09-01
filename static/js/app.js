@@ -7,12 +7,17 @@ document.addEventListener("submit", (evento) => {
   }
 
   const texto = botaoClicado.textContent.trim().toLowerCase();
-  const precisaConfirmar = texto.includes("remover") || texto.includes("sortear");
+  const mensagemPersonalizada = botaoClicado.dataset.confirmacao;
+  const precisaConfirmar = mensagemPersonalizada || texto.includes("remover") || texto.includes("sortear") || texto.includes("excluir");
 
   if (precisaConfirmar) {
-    const mensagem = texto.includes("sortear")
-      ? "Sortear as chaves e iniciar o torneio? Essa ação reinicia as partidas deste torneio."
-      : "Remover este participante?";
+    let mensagem = mensagemPersonalizada;
+
+    if (!mensagem) {
+      mensagem = texto.includes("sortear")
+        ? "Sortear as chaves e iniciar o torneio? Essa ação reinicia as partidas deste torneio."
+        : "Remover este participante?";
+    }
 
     if (!window.confirm(mensagem)) {
       evento.preventDefault();

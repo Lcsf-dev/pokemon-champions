@@ -42,6 +42,9 @@
             {% else %}
               <a class="botao botao-secundario" href="{{ url_for('torneio', torneio_id=torneio.id) }}">Abrir</a>
             {% endif %}
+            <form class="formulario-excluir" action="{{ url_for('deletar', torneio_id=torneio.id) }}" method="post">
+              <button class="botao botao-perigo" type="submit" data-confirmacao="Excluir o torneio '{{ torneio.nome }}'? Essa ação apaga participantes, partidas e imagens vinculadas.">Excluir</button>
+            </form>
           </div>
         </article>
       {% endfor %}
