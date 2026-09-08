@@ -191,6 +191,9 @@ def deletar(torneio_id):
 def participantes(torneio_id):
     with obter_conexao() as conexao:
         torneio = obter_torneio(conexao, torneio_id)
+        if not torneio:
+            flash("Torneio nao encontrado.", "erro")
+            return redirect(url_for("inicio"))
         lista = listar_participantes(conexao, torneio_id)
     return render_template("participantes.html", torneio=torneio, participantes=lista)
 
@@ -243,6 +246,9 @@ def iniciar(torneio_id):
 def torneio(torneio_id):
     with obter_conexao() as conexao:
         torneio_atual = obter_torneio(conexao, torneio_id)
+        if not torneio_atual:
+            flash("Torneio nao encontrado.", "erro")
+            return redirect(url_for("inicio"))
         participantes_lista = listar_participantes(conexao, torneio_id)
         partidas = listar_partidas(conexao, torneio_id)
         pode_desfazer = existe_historico_torneio(conexao, torneio_id)
@@ -266,6 +272,9 @@ def torneio(torneio_id):
 def chaves(torneio_id):
     with obter_conexao() as conexao:
         torneio_atual = obter_torneio(conexao, torneio_id)
+        if not torneio_atual:
+            flash("Torneio nao encontrado.", "erro")
+            return redirect(url_for("inicio"))
         partidas = listar_partidas(conexao, torneio_id)
 
     return render_template(
