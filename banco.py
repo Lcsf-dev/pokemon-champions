@@ -26,6 +26,8 @@ def iniciar_banco():
                 primeiro_lugar_id INTEGER,
                 segundo_lugar_id INTEGER,
                 terceiro_lugar_id INTEGER,
+                iniciado_em TEXT,
+                finalizado_em TEXT,
                 criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (upper_campeao_id) REFERENCES participantes(id),
                 FOREIGN KEY (lower_campeao_id) REFERENCES participantes(id),
@@ -67,3 +69,51 @@ def iniciar_banco():
             );
             """
         )
+        garantir_coluna(conexao, "torneios", "iniciado_em", "TEXT")
+        garantir_coluna(conexao, "torneios", "finalizado_em", "TEXT")
+        preencher_datas_torneios_existentes(conexao)
+
+
+def garantir_coluna(conexao, tabela, coluna, tipo):
+    colunas = conexao.execute(f"PRAGMA table_info({tabela})").fetchall()
+    if coluna not in {linha["name"] for linha in colunas}:
+        conexao.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {tipo}")
+
+
+def preencher_datas_torneios_existentes(conexao):
+    conexao.execute(
+        """
+        UPDATE torneios
+        SET iniciado_em = (
+            SELECT MIN(criada_em)
+            FROM partidas
+            WHERE partidas.torneio_id = torneios.id
+        )
+        WHERE iniciado_em IS NULL
+          AND status != 'cadastro'
+          AND EXISTS (
+            SELECT 1
+            FROM partidas
+            WHERE partidas.torneio_id = torneios.id
+        )
+        """
+    )
+    conexao.execute(
+        """
+        UPDATE torneios
+        SET finalizado_em = (
+            SELECT MAX(finalizada_em)
+            FROM partidas
+            WHERE partidas.torneio_id = torneios.id
+              AND finalizada_em IS NOT NULL
+        )
+        WHERE finalizado_em IS NULL
+          AND status = 'finalizado'
+          AND EXISTS (
+            SELECT 1
+            FROM partidas
+            WHERE partidas.torneio_id = torneios.id
+              AND finalizada_em IS NOT NULL
+        )
+        """
+    )

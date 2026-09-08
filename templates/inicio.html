@@ -35,6 +35,19 @@
             <span class="status status-{{ torneio.status }}">{{ torneio.status }}</span>
             <h3>{{ torneio.nome }}</h3>
             <p>{{ torneio.total_participantes }} participante(s)</p>
+            <p class="periodo-torneio">
+              {% if torneio.iniciado_em %}
+                {{ formatar_data_hora(torneio.iniciado_em) }}
+                -
+                {% if torneio.finalizado_em %}
+                  {{ formatar_hora(torneio.finalizado_em) }}
+                {% else %}
+                  em andamento
+                {% endif %}
+              {% else %}
+                Ainda nao iniciado
+              {% endif %}
+            </p>
           </div>
           <div class="acoes-cartao">
             {% if torneio.status == 'cadastro' %}

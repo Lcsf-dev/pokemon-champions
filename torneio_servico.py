@@ -123,7 +123,9 @@ def iniciar_torneio(conexao, torneio_id):
             lower_campeao_id = NULL,
             primeiro_lugar_id = NULL,
             segundo_lugar_id = NULL,
-            terceiro_lugar_id = NULL
+            terceiro_lugar_id = NULL,
+            iniciado_em = datetime('now', 'localtime'),
+            finalizado_em = NULL
         WHERE id = ?
         """,
         (torneio_id,),
@@ -295,7 +297,8 @@ def finalizar_podio(conexao, torneio_id, vencedor_id, perdedor_id):
         SET status = 'finalizado',
             primeiro_lugar_id = ?,
             segundo_lugar_id = ?,
-            terceiro_lugar_id = ?
+            terceiro_lugar_id = ?,
+            finalizado_em = datetime('now', 'localtime')
         WHERE id = ?
         """,
         (vencedor_id, perdedor_id, terceiro_id, torneio_id),

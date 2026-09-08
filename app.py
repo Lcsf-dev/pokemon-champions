@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 from threading import Timer
 from uuid import uuid4
@@ -66,9 +67,39 @@ def localizar_favicon():
     return localizar_logo()
 
 
+def converter_data_hora(valor):
+    if not valor:
+        return None
+
+    try:
+        return datetime.fromisoformat(valor)
+    except ValueError:
+        return None
+
+
+def formatar_data_hora(valor):
+    data_hora = converter_data_hora(valor)
+    if not data_hora:
+        return None
+    return data_hora.strftime("%d/%m/%Y %H:%M")
+
+
+def formatar_hora(valor):
+    data_hora = converter_data_hora(valor)
+    if not data_hora:
+        return None
+    return data_hora.strftime("%H:%M")
+
+
 @app.context_processor
 def variaveis_globais():
-    return {"caminho_logo": localizar_logo(), "caminho_favicon": localizar_favicon(), "versao_assets": "20260901-excluir-torneio"}
+    return {
+        "caminho_logo": localizar_logo(),
+        "caminho_favicon": localizar_favicon(),
+        "versao_assets": "20260908-periodo-torneio",
+        "formatar_data_hora": formatar_data_hora,
+        "formatar_hora": formatar_hora,
+    }
 def abrir_navegador():
     webbrowser.open_new(f"http://127.0.0.1:{PORTA_LOCAL}")
 

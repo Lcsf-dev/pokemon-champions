@@ -312,6 +312,13 @@ input:focus {
   padding: 18px;
 }
 
+.periodo-torneio {
+  margin: 8px 0 0;
+  color: var(--suave);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .acoes-cartao {
   display: flex;
   flex-wrap: wrap;
