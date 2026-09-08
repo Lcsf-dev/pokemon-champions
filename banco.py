@@ -67,6 +67,15 @@ def iniciar_banco():
                 FOREIGN KEY (vencedor_id) REFERENCES participantes(id),
                 FOREIGN KEY (perdedor_id) REFERENCES participantes(id)
             );
+
+            CREATE TABLE IF NOT EXISTS historico_torneios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                torneio_id INTEGER NOT NULL,
+                descricao TEXT NOT NULL,
+                dados TEXT NOT NULL,
+                criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (torneio_id) REFERENCES torneios(id) ON DELETE CASCADE
+            );
             """
         )
         garantir_coluna(conexao, "torneios", "iniciado_em", "TEXT")

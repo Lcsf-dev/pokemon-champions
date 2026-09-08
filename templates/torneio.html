@@ -74,7 +74,16 @@
     <h1>{{ torneio.nome }}</h1>
     <p class="subtitulo">Cada derrota e salva automaticamente. Com duas derrotas, o participante e eliminado.</p>
   </div>
-  <a class="botao botao-secundario" href="{{ url_for('participantes', torneio_id=torneio.id) }}">Ver cadastro</a>
+  <div class="acoes-cabecalho">
+    {% if pode_desfazer %}
+      <form action="{{ url_for('desfazer_resultado', torneio_id=torneio.id) }}" method="post">
+        <button class="botao botao-perigo" type="submit" data-confirmacao="Desfazer o ultimo resultado registrado neste torneio?">
+          Desfazer ultimo resultado
+        </button>
+      </form>
+    {% endif %}
+    <a class="botao botao-secundario" href="{{ url_for('participantes', torneio_id=torneio.id) }}">Ver cadastro</a>
+  </div>
 </section>
 <nav class="abas-torneio" aria-label="Navegação do torneio">
   <a class="aba-torneio ativa" href="{{ url_for('torneio', torneio_id=torneio.id) }}">Gerenciar partidas</a>

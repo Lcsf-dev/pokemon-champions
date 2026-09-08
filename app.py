@@ -11,6 +11,8 @@ from banco import RAIZ_PROJETO, iniciar_banco, obter_conexao
 from torneio_servico import (
     adicionar_participante,
     deletar_torneio,
+    desfazer_ultimo_resultado,
+    existe_historico_torneio,
     buscar_nome_participante,
     criar_torneio,
     iniciar_torneio,
@@ -243,6 +245,7 @@ def torneio(torneio_id):
         torneio_atual = obter_torneio(conexao, torneio_id)
         participantes_lista = listar_participantes(conexao, torneio_id)
         partidas = listar_partidas(conexao, torneio_id)
+        pode_desfazer = existe_historico_torneio(conexao, torneio_id)
         podio = {
             "primeiro": buscar_nome_participante(conexao, torneio_atual["primeiro_lugar_id"]),
             "segundo": buscar_nome_participante(conexao, torneio_atual["segundo_lugar_id"]),
@@ -254,6 +257,7 @@ def torneio(torneio_id):
         participantes=participantes_lista,
         partidas=partidas,
         podio=podio,
+        pode_desfazer=pode_desfazer,
     )
 
 
@@ -283,6 +287,18 @@ def resultado(partida_id):
             registrar_resultado(conexao, partida_id, vencedor_id)
             conexao.commit()
         flash("Resultado registrado e salvo.", "sucesso")
+    except ValueError as erro:
+        flash(str(erro), "erro")
+    return redirect(url_for("torneio", torneio_id=torneio_id))
+
+
+@app.post("/torneios/<int:torneio_id>/desfazer")
+def desfazer_resultado(torneio_id):
+    try:
+        with obter_conexao() as conexao:
+            desfazer_ultimo_resultado(conexao, torneio_id)
+            conexao.commit()
+        flash("Ultimo resultado desfeito com sucesso.", "sucesso")
     except ValueError as erro:
         flash(str(erro), "erro")
     return redirect(url_for("torneio", torneio_id=torneio_id))

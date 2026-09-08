@@ -1,3 +1,4 @@
+import json
 import random
 from itertools import zip_longest
 
@@ -62,6 +63,16 @@ def listar_partidas(conexao, torneio_id):
     ).fetchall()
 
 
+def existe_historico_torneio(conexao, torneio_id):
+    return (
+        conexao.execute(
+            "SELECT COUNT(*) AS total FROM historico_torneios WHERE torneio_id = ?",
+            (torneio_id,),
+        ).fetchone()["total"]
+        > 0
+    )
+
+
 def criar_torneio(conexao, nome):
     cursor = conexao.execute("INSERT INTO torneios (nome) VALUES (?)", (nome.strip(),))
     return cursor.lastrowid
@@ -107,6 +118,7 @@ def iniciar_torneio(conexao, torneio_id):
         raise ValueError("O limite desta versao e de 50 participantes.")
 
     conexao.execute("DELETE FROM partidas WHERE torneio_id = ?", (torneio_id,))
+    conexao.execute("DELETE FROM historico_torneios WHERE torneio_id = ?", (torneio_id,))
     conexao.execute(
         """
         UPDATE participantes
@@ -147,6 +159,8 @@ def registrar_resultado(conexao, partida_id, vencedor_id):
     vencedor_id = int(vencedor_id)
     if vencedor_id not in ids_partida:
         raise ValueError("Vencedor invalido para esta partida.")
+
+    salvar_estado_torneio(conexao, partida["torneio_id"], f"Antes da partida {partida_id}")
 
     perdedor_id = (
         partida["participante_b_id"]
@@ -189,6 +203,144 @@ def registrar_derrota(conexao, participante_id):
         "UPDATE participantes SET derrotas = ?, status = ? WHERE id = ?",
         (derrotas, status, participante_id),
     )
+
+
+def salvar_estado_torneio(conexao, torneio_id, descricao):
+    torneio = conexao.execute("SELECT * FROM torneios WHERE id = ?", (torneio_id,)).fetchone()
+    participantes = conexao.execute(
+        "SELECT * FROM participantes WHERE torneio_id = ? ORDER BY id",
+        (torneio_id,),
+    ).fetchall()
+    partidas = conexao.execute(
+        "SELECT * FROM partidas WHERE torneio_id = ? ORDER BY id",
+        (torneio_id,),
+    ).fetchall()
+
+    dados = {
+        "torneio": dict(torneio),
+        "participantes": [dict(participante) for participante in participantes],
+        "partidas": [dict(partida) for partida in partidas],
+    }
+
+    conexao.execute(
+        """
+        INSERT INTO historico_torneios (torneio_id, descricao, dados)
+        VALUES (?, ?, ?)
+        """,
+        (torneio_id, descricao, json.dumps(dados)),
+    )
+
+
+def desfazer_ultimo_resultado(conexao, torneio_id):
+    historico = conexao.execute(
+        """
+        SELECT id, dados
+        FROM historico_torneios
+        WHERE torneio_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (torneio_id,),
+    ).fetchone()
+
+    if not historico:
+        raise ValueError("Nao ha resultado para desfazer neste torneio.")
+
+    dados = json.loads(historico["dados"])
+    torneio = dados["torneio"]
+
+    conexao.execute(
+        """
+        UPDATE torneios
+        SET status = 'andamento',
+            upper_campeao_id = NULL,
+            lower_campeao_id = NULL,
+            primeiro_lugar_id = NULL,
+            segundo_lugar_id = NULL,
+            terceiro_lugar_id = NULL,
+            finalizado_em = NULL
+        WHERE id = ?
+        """,
+        (torneio_id,),
+    )
+    conexao.execute("DELETE FROM partidas WHERE torneio_id = ?", (torneio_id,))
+    conexao.execute("DELETE FROM participantes WHERE torneio_id = ?", (torneio_id,))
+
+    for participante in dados["participantes"]:
+        conexao.execute(
+            """
+            INSERT INTO participantes (
+                id, torneio_id, nome, apelido, imagem, derrotas, status, criado_em
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                participante["id"],
+                participante["torneio_id"],
+                participante["nome"],
+                participante["apelido"],
+                participante["imagem"],
+                participante["derrotas"],
+                participante["status"],
+                participante["criado_em"],
+            ),
+        )
+
+    for partida in dados["partidas"]:
+        conexao.execute(
+            """
+            INSERT INTO partidas (
+                id, torneio_id, chave, rodada, ordem, participante_a_id, participante_b_id,
+                vencedor_id, perdedor_id, status, criada_em, finalizada_em
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                partida["id"],
+                partida["torneio_id"],
+                partida["chave"],
+                partida["rodada"],
+                partida["ordem"],
+                partida["participante_a_id"],
+                partida["participante_b_id"],
+                partida["vencedor_id"],
+                partida["perdedor_id"],
+                partida["status"],
+                partida["criada_em"],
+                partida["finalizada_em"],
+            ),
+        )
+
+    conexao.execute(
+        """
+        UPDATE torneios
+        SET nome = ?,
+            status = ?,
+            upper_campeao_id = ?,
+            lower_campeao_id = ?,
+            primeiro_lugar_id = ?,
+            segundo_lugar_id = ?,
+            terceiro_lugar_id = ?,
+            iniciado_em = ?,
+            finalizado_em = ?,
+            criado_em = ?
+        WHERE id = ?
+        """,
+        (
+            torneio["nome"],
+            torneio["status"],
+            torneio["upper_campeao_id"],
+            torneio["lower_campeao_id"],
+            torneio["primeiro_lugar_id"],
+            torneio["segundo_lugar_id"],
+            torneio["terceiro_lugar_id"],
+            torneio.get("iniciado_em"),
+            torneio.get("finalizado_em"),
+            torneio["criado_em"],
+            torneio_id,
+        ),
+    )
+    conexao.execute("DELETE FROM historico_torneios WHERE id = ?", (historico["id"],))
 
 
 def recalcular_torneio(conexao, torneio_id):
