@@ -48,6 +48,19 @@
       {% block conteudo %}{% endblock %}
     </main>
 
+    <div class="modal-confirmacao" data-modal-confirmacao aria-hidden="true">
+      <div class="modal-confirmacao-fundo" data-cancelar-confirmacao></div>
+      <section class="modal-confirmacao-caixa" role="dialog" aria-modal="true" aria-labelledby="modal-confirmacao-titulo">
+        <p class="rotulo">Confirmacao</p>
+        <h2 id="modal-confirmacao-titulo">Confirmar acao</h2>
+        <p data-mensagem-confirmacao>Tem certeza que deseja continuar?</p>
+        <div class="modal-confirmacao-acoes">
+          <button class="botao botao-secundario" type="button" data-cancelar-confirmacao>Cancelar</button>
+          <button class="botao botao-primario" type="button" data-confirmar-confirmacao>Confirmar</button>
+        </div>
+      </section>
+    </div>
+
     <script src="{{ url_for('static', filename='js/app.js', v=versao_assets) }}"></script>
   </body>
 </html>

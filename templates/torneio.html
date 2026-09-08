@@ -41,10 +41,10 @@
             {% if partida.status == 'pendente' and torneio.status != 'finalizado' %}
               <form class="acoes-resultado" action="{{ url_for('resultado', partida_id=partida.id) }}" method="post">
                 <input type="hidden" name="torneio_id" value="{{ torneio.id }}">
-                <button class="botao botao-secundario" name="vencedor_id" value="{{ partida.participante_a_id }}" type="submit">
+                <button class="botao botao-secundario" name="vencedor_id" value="{{ partida.participante_a_id }}" type="submit" data-confirmacao="Confirmar {{ partida.participante_a_nome }} como vencedor desta partida?">
                   {{ partida.participante_a_nome }} venceu
                 </button>
-                <button class="botao botao-secundario" name="vencedor_id" value="{{ partida.participante_b_id }}" type="submit">
+                <button class="botao botao-secundario" name="vencedor_id" value="{{ partida.participante_b_id }}" type="submit" data-confirmacao="Confirmar {{ partida.participante_b_nome }} como vencedor desta partida?">
                   {{ partida.participante_b_nome }} venceu
                 </button>
               </form>
