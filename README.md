@@ -2,6 +2,10 @@
 
 Sistema local para gerenciamento de torneios de Pokémon no formato **dupla eliminação** (*Double Elimination*). A aplicação permite cadastrar participantes, sortear confrontos, registrar resultados, controlar chave principal e repescagem, além de definir automaticamente o pódio final.
 
+## 🖥️ Tela do sistema
+
+![Tela inicial do Pokémon Champions com criação e listagem de torneios](docs/imagens/pokemon-champions.png)
+
 ## 📌 Visão Geral
 
 O projeto foi desenvolvido para organizar torneios presenciais de Pokémon com uma interface visual simples, bonita e funcional. A proposta é permitir que o organizador acompanhe o campeonato pelo navegador, mantendo os dados salvos localmente em banco SQLite.
